@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -39,7 +40,7 @@ func main() {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.SetStyle(table.StyleColoredBright)
-	t.AppendHeader(table.Row{"Name", "Channel", "Version", "Arch", "Revision", "Date"})
+	t.AppendHeader(table.Row{"Name", "Channel", "Version", "Arch", "Rev", "Date", "Build"})
 
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 1, AutoMerge: true},
@@ -48,11 +49,32 @@ func main() {
 	})
 
 	for k, _ := range conf.Snaps {
+		// snap store
 		info, err := querySnapStore(k)
 		if err != nil {
 			log.Fatalf("Error querying snap store: %s", err)
 		}
+
+		// launchpad
+		builds, err := queryLaunchpad(k)
+		if err != nil {
+			log.Fatalf("Error querying launchpad: %s", err)
+		}
+		builtRevs := make(map[uint]string)
+		for _, v := range builds.Entries {
+			if v.StoreUploadRevision != nil {
+				builtRevs[*v.StoreUploadRevision] = v.BuildState
+			}
+		}
+
 		for _, cm := range info.ChannelMap {
+			var build string
+			buildState, found := builtRevs[cm.Revision]
+			if found && buildState == "Successfully built" {
+				build = "✅"
+			} else {
+				build = ""
+			}
 			t.AppendRow(table.Row{
 				k,
 				cm.Channel.Track + "/" + cm.Channel.Risk,
@@ -60,6 +82,7 @@ func main() {
 				cm.Channel.Architecture,
 				cm.Revision,
 				cm.Channel.ReleasedAt.Format(time.Stamp),
+				build,
 			}, table.RowConfig{AutoMerge: true})
 		}
 		t.AppendSeparator()
@@ -106,4 +129,29 @@ func querySnapStore(snapName string) (*snapInfo, error) {
 	// log.Println("Snap info:", info)
 
 	return &info, nil
+}
+
+type builds struct {
+	Entries []struct {
+		StoreUploadRevision *uint `json:"store_upload_revision"`
+		BuildState          string
+	}
+}
+
+func queryLaunchpad(projectName string) (*builds, error) {
+	log.Println("Querying launchpad for:", projectName)
+	res, err := http.Get(fmt.Sprintf("https://api.launchpad.net/devel/~canonical-edgex/+snap/%s/builds?ws.size=2&direction=backwards&memo=0", projectName))
+	if err != nil {
+		return nil, err
+	}
+
+	var builds builds
+	err = json.NewDecoder(res.Body).Decode(&builds)
+	if err != nil {
+		return nil, err
+	}
+
+	// log.Println("Builds:", builds)
+
+	return &builds, nil
 }
