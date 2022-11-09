@@ -34,7 +34,7 @@ func main() {
 		{Number: 3, AutoMerge: true},
 	})
 
-	for k, _ := range conf.Snaps {
+	for k, v := range conf.Snaps {
 		// snap store
 		info, err := querySnapStore(k)
 		if err != nil {
@@ -53,13 +53,30 @@ func main() {
 			}
 		}
 
+		// github
+		runs, err := queryGithub(v.GithubRepo)
+		if err != nil {
+			log.Fatalf("Error querying launchpad: %s", err)
+		}
+		var totalSnapRuns, failedSnapRuns uint
+		testIcon := "🔴"
+		for _, run := range runs.WorkflowRuns {
+			if run.Name == "Snap Testing" {
+				totalSnapRuns++
+			}
+			if run.Conclusion == "failure" {
+				failedSnapRuns++
+			}
+		}
+		if failedSnapRuns == 0 {
+			testIcon = "🟢"
+		}
+
 		for _, cm := range info.ChannelMap {
 			var build string
 			buildState, found := builtRevs[cm.Revision]
 			if found && buildState == "Successfully built" {
 				build = "✅"
-			} else {
-				build = ""
 			}
 			t.AppendRow(table.Row{
 				k,
@@ -71,6 +88,15 @@ func main() {
 				build,
 			}, table.RowConfig{AutoMerge: true})
 		}
+		t.AppendRow(table.Row{
+			fmt.Sprintf("%s failed %d/%d", testIcon, failedSnapRuns, totalSnapRuns),
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		}, table.RowConfig{AutoMerge: true})
 		t.AppendSeparator()
 	}
 
@@ -79,6 +105,7 @@ func main() {
 
 type config struct {
 	Snaps map[string]struct {
+		GithubRepo string
 	}
 }
 
@@ -179,4 +206,33 @@ func queryLaunchpad(projectName string) (*builds, error) {
 	// log.Println("Builds:", builds)
 
 	return &builds, nil
+}
+
+type runs struct {
+	WorkflowRuns []struct {
+		Name       string
+		Conclusion string
+		// DisplayTitle string `json:"display_title"`
+		// HTMLURL      string `json:"html_url"`
+	} `json:"workflow_runs"`
+}
+
+func queryGithub(project string) (*runs, error) {
+	// https://api.github.com/repos/edgexfoundry/edgex-go/actions/runs?per_page=5&status=failure
+
+	log.Println("Querying Github workflows for:", project)
+	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/actions/runs?per_page=10&event=pull_request", project))
+	if err != nil {
+		return nil, err
+	}
+
+	var r runs
+	err = json.NewDecoder(res.Body).Decode(&r)
+	if err != nil {
+		return nil, err
+	}
+
+	// log.Println("runs:", r)
+
+	return &r, err
 }

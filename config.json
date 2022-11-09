@@ -1,6 +1,13 @@
 {
     "snaps": {
-        "edgexfoundry": {},
-        "edgex-device-virtual": {}
+        "edgexfoundry": {
+            "githubRepo": "edgexfoundry/edgex-go"
+        },
+        "edgex-device-virtual": {
+            "githubRepo": "edgexfoundry/device-virtual-go"
+        },
+        "edgex-cli": {
+            "githubRepo": "edgexfoundry/edgex-cli"
+        }
     }
 }
