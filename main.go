@@ -2,39 +2,25 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 const (
-	configFile = "config.json"
+	configURL = "https://raw.githubusercontent.com/farshidtz/edgex-snap-info/main/config.json"
 )
 
-type config struct {
-	Snaps map[string]snap
-}
-
-type snap struct {
-}
-
 func main() {
-	var err error
-	log.Println("Reading config file:", configFile)
-	file, err := os.Open(configFile)
+	conf, err := loadConfig()
 	if err != nil {
-		log.Fatalf("Error opening config file: %s\n", err)
-	}
-	defer file.Close()
-
-	var conf config
-	err = json.NewDecoder(file).Decode(&conf)
-	if err != nil {
-		log.Fatalf("Error reading config file: %s\n", err)
+		log.Fatalf("Error loading config file: %s", err)
 	}
 
 	t := table.NewWriter()
@@ -89,6 +75,45 @@ func main() {
 	}
 
 	t.Render()
+}
+
+type config struct {
+	Snaps map[string]struct {
+	}
+}
+
+func loadConfig() (c *config, err error) {
+	conf := flag.String("conf", configURL, "URL or local path to config file")
+	flag.Parse()
+
+	if strings.HasPrefix(*conf, "http") {
+		log.Println("Fetching config file from:", *conf)
+
+		res, err := http.Get(*conf)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+
+		err = json.NewDecoder(res.Body).Decode(&c)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Println("Reading local config file from:", *conf)
+		file, err := os.Open(*conf)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		err = json.NewDecoder(file).Decode(&c)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return c, nil
 }
 
 type snapInfo struct {
