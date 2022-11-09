@@ -73,6 +73,10 @@ func main() {
 		}
 
 		for _, cm := range info.ChannelMap {
+			// Setting empty string for anything that isn't a success.
+			// This includes the following scenarios:
+			// - A build may be too old and not returned in the query and match the revisions
+			// - A build may be pending and not yet uploaded to have a revision number
 			var build string
 			buildState, found := builtRevs[cm.Revision]
 			if found && buildState == "Successfully built" {
