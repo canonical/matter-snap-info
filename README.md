@@ -2,7 +2,7 @@
 
 Install:
 ```
-go install github.com/farshidtz/edgex-snap-info
+go install github.com/canonical/edgex-snap-info
 ```
 
 Run:

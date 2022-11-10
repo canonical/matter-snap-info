@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	configURL = "https://raw.githubusercontent.com/farshidtz/edgex-snap-info/main/config.json"
+	configURL = "https://raw.githubusercontent.com/canonical/edgex-snap-info/main/config.json"
 )
 
 func main() {

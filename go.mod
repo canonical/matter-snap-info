@@ -1,4 +1,4 @@
-module github.com/farshidtz/edgex-snap-info
+module github.com/canonical/edgex-snap-info
 
 go 1.18
 
