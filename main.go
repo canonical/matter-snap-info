@@ -73,10 +73,11 @@ func main() {
 		}
 
 		for _, cm := range info.ChannelMap {
-			// Setting empty string for anything that isn't a success.
-			// This includes the following scenarios:
-			// - A build may be too old and not returned in the query and match the revisions
-			// - A build may be pending and not yet uploaded to have a revision number
+			// Setting a check mark only if we find the successful build result for a given revision.
+			// Alternative scenarios include results that have no revision number because:
+			// - build or artifact upload has failed (an actual failure)
+			// - build is too old and not returned in the query
+			// - build or artifact upload is pending
 			var build string
 			buildState, found := builtRevs[cm.Revision]
 			if found && buildState == "Successfully built" {
