@@ -197,7 +197,7 @@ type builds struct {
 
 func queryLaunchpad(projectName string) (*builds, error) {
 	log.Println("Querying launchpad for:", projectName)
-	res, err := http.Get(fmt.Sprintf("https://api.launchpad.net/devel/~canonical-edgex/+snap/%s/builds?ws.size=2&direction=backwards&memo=0", projectName))
+	res, err := http.Get(fmt.Sprintf("https://api.launchpad.net/devel/~canonical-edgex/+snap/%s/builds?ws.size=4&direction=backwards&memo=0", projectName))
 	if err != nil {
 		return nil, err
 	}
