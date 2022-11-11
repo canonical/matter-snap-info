@@ -18,7 +18,11 @@ const (
 )
 
 func main() {
-	conf, err := loadConfig()
+	confFile := flag.String("conf", configURL, "URL or local path to config file")
+	snapName := flag.String("snap", "", "Get info for a single snap only")
+	flag.Parse()
+
+	conf, err := loadConfig(*confFile)
 	if err != nil {
 		log.Fatalf("Error loading config file: %s", err)
 	}
@@ -35,6 +39,13 @@ func main() {
 	})
 
 	for k, v := range conf.Snaps {
+		// filter by snap name
+		if *snapName != "" && k != *snapName {
+			continue
+		}
+
+		log.Printf("⏬ %s", k)
+
 		// snap store
 		info, err := querySnapStore(k)
 		if err != nil {
@@ -46,10 +57,15 @@ func main() {
 		if err != nil {
 			log.Fatalf("Error querying launchpad: %s", err)
 		}
-		builtRevs := make(map[uint]string)
+		revisionBuildStatus := make(map[uint]string)
 		for _, v := range builds.Entries {
-			if v.StoreUploadRevision != nil {
-				builtRevs[*v.StoreUploadRevision] = v.BuildState
+			// Setting a check mark only if we find the successful build result for a given revision.
+			// Alternative scenarios include results that have no revision number because:
+			// - build or artifact upload has failed (an actual failure)
+			// - build is too old and not returned in the query
+			// - build or artifact upload is pending
+			if v.StoreUploadRevision != nil && v.BuildState == "Successfully built" {
+				revisionBuildStatus[*v.StoreUploadRevision] = "✅"
 			}
 		}
 
@@ -66,22 +82,15 @@ func main() {
 			}
 			if run.Conclusion == "failure" {
 				failedSnapRuns++
+				log.Printf("🔴 %s (%s)", run.DisplayTitle, run.HTMLURL)
 			}
 		}
 		if failedSnapRuns == 0 {
 			testIcon = "🟢"
 		}
 
+		// fill the table
 		for _, cm := range info.ChannelMap {
-			// Setting empty string for anything that isn't a success.
-			// This includes the following scenarios:
-			// - A build may be too old and not returned in the query and match the revisions
-			// - A build may be pending and not yet uploaded to have a revision number
-			var build string
-			buildState, found := builtRevs[cm.Revision]
-			if found && buildState == "Successfully built" {
-				build = "✅"
-			}
 			t.AppendRow(table.Row{
 				k,
 				cm.Channel.Track + "/" + cm.Channel.Risk,
@@ -89,17 +98,12 @@ func main() {
 				cm.Channel.Architecture,
 				cm.Revision,
 				cm.Channel.ReleasedAt.Format(time.Stamp),
-				build,
+				revisionBuildStatus[cm.Revision],
 			}, table.RowConfig{AutoMerge: true})
 		}
 		t.AppendRow(table.Row{
 			fmt.Sprintf("%s failed %d/%d", testIcon, failedSnapRuns, totalSnapRuns),
-			"",
-			"",
-			"",
-			"",
-			"",
-			"",
+			"", "", "", "", "", "",
 		}, table.RowConfig{AutoMerge: true})
 		t.AppendSeparator()
 	}
@@ -113,14 +117,12 @@ type config struct {
 	}
 }
 
-func loadConfig() (c *config, err error) {
-	conf := flag.String("conf", configURL, "URL or local path to config file")
-	flag.Parse()
+func loadConfig(confFile string) (c *config, err error) {
 
-	if strings.HasPrefix(*conf, "http") {
-		log.Println("Fetching config file from:", *conf)
+	if strings.HasPrefix(confFile, "http") {
+		log.Println("Fetching config file from:", confFile)
 
-		res, err := http.Get(*conf)
+		res, err := http.Get(confFile)
 		if err != nil {
 			return nil, err
 		}
@@ -131,8 +133,8 @@ func loadConfig() (c *config, err error) {
 			return nil, err
 		}
 	} else {
-		log.Println("Reading local config file from:", *conf)
-		file, err := os.Open(*conf)
+		log.Println("Reading local config file from:", confFile)
+		file, err := os.Open(confFile)
 		if err != nil {
 			return nil, err
 		}
@@ -160,7 +162,7 @@ type snapInfo struct {
 }
 
 func querySnapStore(snapName string) (*snapInfo, error) {
-	log.Println("Querying snap info for:", snapName)
+	log.Println("Querying Snap Store info for:", snapName)
 	req, err := http.NewRequest(http.MethodGet, "https://api.snapcraft.io/v2/snaps/info/"+snapName, nil)
 	if err != nil {
 		return nil, err
@@ -195,7 +197,7 @@ type builds struct {
 }
 
 func queryLaunchpad(projectName string) (*builds, error) {
-	log.Println("Querying launchpad for:", projectName)
+	log.Println("Querying Launchpad for:", projectName)
 	res, err := http.Get(fmt.Sprintf("https://api.launchpad.net/devel/~canonical-edgex/+snap/%s/builds?ws.size=4&direction=backwards&memo=0", projectName))
 	if err != nil {
 		return nil, err
@@ -214,17 +216,15 @@ func queryLaunchpad(projectName string) (*builds, error) {
 
 type runs struct {
 	WorkflowRuns []struct {
-		Name       string
-		Conclusion string
-		// DisplayTitle string `json:"display_title"`
-		// HTMLURL      string `json:"html_url"`
+		Name         string
+		Conclusion   string
+		DisplayTitle string `json:"display_title"`
+		HTMLURL      string `json:"html_url"`
 	} `json:"workflow_runs"`
 }
 
 func queryGithub(project string) (*runs, error) {
-	// https://api.github.com/repos/edgexfoundry/edgex-go/actions/runs?per_page=5&status=failure
-
-	log.Println("Querying Github workflows for:", project)
+	log.Println("Querying Github workflow runs for:", project)
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/actions/runs?per_page=10&event=pull_request", project))
 	if err != nil {
 		return nil, err
@@ -236,7 +236,7 @@ func queryGithub(project string) (*runs, error) {
 		return nil, err
 	}
 
-	// log.Println("runs:", r)
+	// log.Println("Github workflow runs:", r)
 
 	return &r, err
 }
