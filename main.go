@@ -85,7 +85,9 @@ func main() {
 				log.Printf("🔴 %s (%s)", run.DisplayTitle, run.HTMLURL)
 			}
 		}
-		if failedSnapRuns == 0 {
+		if totalSnapRuns == 0 { // something is not right
+			testIcon = "🟠"
+		} else if failedSnapRuns == 0 {
 			testIcon = "🟢"
 		}
 
@@ -221,6 +223,7 @@ type runs struct {
 		DisplayTitle string `json:"display_title"`
 		HTMLURL      string `json:"html_url"`
 	} `json:"workflow_runs"`
+	Message string
 }
 
 func queryGithub(project string) (*runs, error) {
@@ -234,6 +237,10 @@ func queryGithub(project string) (*runs, error) {
 	err = json.NewDecoder(res.Body).Decode(&r)
 	if err != nil {
 		return nil, err
+	}
+
+	if r.Message != "" {
+		log.Printf("🟠 %s", r.Message)
 	}
 
 	// log.Println("Github workflow runs:", r)
