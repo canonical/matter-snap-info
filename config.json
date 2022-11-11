@@ -28,7 +28,7 @@
             "githubRepo": "edgexfoundry/device-mqtt-go"
         },
         "edgex-device-gpio": {
-            "githubRepo": "edgexfoundry/device-gpio-go"
+            "githubRepo": "edgexfoundry/device-gpio"
         },
         "edgex-device-rfid-llrp": {
             "githubRepo": "edgexfoundry/device-rfid-llrp-go"
