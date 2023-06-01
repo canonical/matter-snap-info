@@ -6,9 +6,6 @@
         "edgex-device-virtual": {
             "githubRepo": "edgexfoundry/device-virtual-go"
         },
-        "edgex-cli": {
-            "githubRepo": "edgexfoundry/edgex-cli"
-        },
         "edgex-ekuiper": {
             "githubRepo": "canonical/edgex-ekuiper-snap"
         },
