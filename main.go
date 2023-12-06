@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
+	config "github.com/canonical/edgex-snap-info/src"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
@@ -22,7 +22,7 @@ func main() {
 	snapName := flag.String("snap", "", "Get info for a single snap only")
 	flag.Parse()
 
-	conf, err := loadConfig(*confFile)
+	conf, err := config.LoadConfig(*confFile)
 	if err != nil {
 		log.Fatalf("Error loading config file: %s", err)
 	}
@@ -111,44 +111,6 @@ func main() {
 	}
 
 	t.Render()
-}
-
-type config struct {
-	Snaps map[string]struct {
-		GithubRepo string
-	}
-}
-
-func loadConfig(confFile string) (c *config, err error) {
-
-	if strings.HasPrefix(confFile, "http") {
-		log.Println("Fetching config file from:", confFile)
-
-		res, err := http.Get(confFile)
-		if err != nil {
-			return nil, err
-		}
-		defer res.Body.Close()
-
-		err = json.NewDecoder(res.Body).Decode(&c)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		log.Println("Reading local config file from:", confFile)
-		file, err := os.Open(confFile)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		err = json.NewDecoder(file).Decode(&c)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return c, nil
 }
 
 type snapInfo struct {
