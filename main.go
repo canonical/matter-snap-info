@@ -148,8 +148,6 @@ func querySnapStore(snapName string) (*snapInfo, error) {
 		return nil, err
 	}
 
-	// log.Println("Snap info:", info)
-
 	return &info, nil
 }
 
@@ -172,8 +170,6 @@ func queryLaunchpad(projectName string) (*builds, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// log.Println("Builds:", builds)
 
 	return &builds, nil
 }
@@ -204,8 +200,6 @@ func queryGithub(project string) (*runs, error) {
 	if r.Message != "" {
 		log.Printf("🟠 %s", r.Message)
 	}
-
-	// log.Println("Github workflow runs:", r)
 
 	return &r, err
 }
