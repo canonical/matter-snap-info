@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ type Config struct {
 }
 
 func LoadConfig(confFile string) (c *Config, err error) {
+	var reader io.Reader
 
 	if strings.HasPrefix(confFile, "http") {
 		log.Println("Fetching config file from:", confFile)
@@ -25,10 +27,7 @@ func LoadConfig(confFile string) (c *Config, err error) {
 		}
 		defer res.Body.Close()
 
-		err = json.NewDecoder(res.Body).Decode(&c)
-		if err != nil {
-			return nil, err
-		}
+		reader = res.Body
 	} else {
 		log.Println("Reading local config file from:", confFile)
 		file, err := os.Open(confFile)
@@ -37,10 +36,12 @@ func LoadConfig(confFile string) (c *Config, err error) {
 		}
 		defer file.Close()
 
-		err = json.NewDecoder(file).Decode(&c)
-		if err != nil {
-			return nil, err
-		}
+		reader = file
+	}
+
+	err = json.NewDecoder(reader).Decode(&c)
+	if err != nil {
+		return nil, err
 	}
 
 	return c, nil
