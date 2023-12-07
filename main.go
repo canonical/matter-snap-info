@@ -185,7 +185,7 @@ type runs struct {
 }
 
 func queryGithub(project string) (*runs, error) {
-	logger.Println(logger.White, "Querying Github workflow runs for:", logger.White, project)
+	logger.Println(logger.White, "Querying Github workflow runs for:", project)
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/actions/runs?per_page=10&event=pull_request", project))
 	if err != nil {
 		return nil, err
