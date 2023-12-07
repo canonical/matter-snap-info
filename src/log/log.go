@@ -14,14 +14,18 @@ const (
 	Reset  = "\033[0m"
 )
 
-func Printf(format, color string, args ...interface{}) {
-	msg := fmt.Sprintf(format, args...)
+func Printf(color, format string, v ...interface{}) {
+	msg := fmt.Sprintf(format, v...)
 	log.Printf(color + msg + Reset)
 }
 
-func Println(format, color string, args ...interface{}) {
-	msg := color + fmt.Sprintf(format, args...) + Reset
-	log.Println(msg)
+func Println(color string, args ...interface{}) {
+	var msg string
+	for _, v := range args {
+		str, _ := v.(string)
+		msg += str
+	}
+	log.Println(color + msg + Reset)
 }
 
 func Fatalf(format string, args ...interface{}) {
