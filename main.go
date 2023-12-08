@@ -44,7 +44,7 @@ func main() {
 			continue
 		}
 
-		logger.Printf(logger.Green, "⏬ %s", k)
+		logger.Successf("⏬ %s", k)
 
 		// snap store
 		info, err := querySnapStore(k)
@@ -82,7 +82,7 @@ func main() {
 			}
 			if run.Conclusion == "failure" {
 				failedSnapRuns++
-				logger.Printf(logger.Red, "🔴 %s (%s)", run.DisplayTitle, run.HTMLURL)
+				logger.Errorf("🔴 %s (%s)", run.DisplayTitle, run.HTMLURL)
 			}
 		}
 		if totalSnapRuns == 0 { // something is not right
@@ -126,7 +126,7 @@ type snapInfo struct {
 }
 
 func querySnapStore(snapName string) (*snapInfo, error) {
-	logger.Println(logger.White, "Querying Snap Store info for:", snapName)
+	logger.Infoln("Querying Snap Store info for:", snapName)
 	req, err := http.NewRequest(http.MethodGet, "https://api.snapcraft.io/v2/snaps/info/"+snapName, nil)
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ type builds struct {
 }
 
 func queryLaunchpad(projectName string) (*builds, error) {
-	logger.Println(logger.White, "Querying Launchpad for:", projectName)
+	logger.Infoln("Querying Launchpad for:", projectName)
 	res, err := http.Get(fmt.Sprintf("https://api.launchpad.net/devel/~canonical-edgex/+snap/%s/builds?ws.size=10&direction=backwards&memo=0", projectName))
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ type runs struct {
 }
 
 func queryGithub(project string) (*runs, error) {
-	logger.Println(logger.White, "Querying Github workflow runs for:", project)
+	logger.Infoln("Querying Github workflow runs for:", project)
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/actions/runs?per_page=10&event=pull_request", project))
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func queryGithub(project string) (*runs, error) {
 	}
 
 	if r.Message != "" {
-		logger.Printf(logger.Yellow, "🟠 %s", r.Message)
+		logger.Warnf("🟠 %s", r.Message)
 	}
 
 	return &r, err
