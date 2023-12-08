@@ -20,12 +20,8 @@ func Printf(color, format string, v ...interface{}) {
 }
 
 func Println(color string, args ...interface{}) {
-	var msg string
-	for _, v := range args {
-		str, _ := v.(string)
-		msg += str
-	}
-	log.Println(color + msg + Reset)
+	msg := color + fmt.Sprint(args...) + Reset
+	log.Println(msg)
 }
 
 func Fatalf(format string, args ...interface{}) {
