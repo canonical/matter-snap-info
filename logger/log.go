@@ -20,8 +20,7 @@ func Successf(format string, args ...interface{}) {
 }
 
 func Successln(args ...interface{}) {
-	msg := green + fmt.Sprint(args...) + reset
-	log.Println(msg)
+	Successf(fmt.Sprint(args...))
 }
 
 func Infof(format string, args ...interface{}) {
