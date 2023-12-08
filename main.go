@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
+	"github.com/canonical/edgex-snap-info/config"
+	"github.com/canonical/edgex-snap-info/logger"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
@@ -22,9 +22,9 @@ func main() {
 	snapName := flag.String("snap", "", "Get info for a single snap only")
 	flag.Parse()
 
-	conf, err := loadConfig(*confFile)
+	conf, err := config.Load(*confFile)
 	if err != nil {
-		log.Fatalf("Error loading config file: %s", err)
+		logger.Fatalf("Error loading config file: %s", err)
 	}
 
 	t := table.NewWriter()
@@ -44,18 +44,18 @@ func main() {
 			continue
 		}
 
-		log.Printf("⏬ %s", k)
+		logger.Infof("⏬ %s", k)
 
 		// snap store
 		info, err := querySnapStore(k)
 		if err != nil {
-			log.Fatalf("Error querying snap store: %s", err)
+			logger.Fatalf("Error querying snap store: %s", err)
 		}
 
 		// launchpad
 		builds, err := queryLaunchpad(k)
 		if err != nil {
-			log.Fatalf("Error querying launchpad: %s", err)
+			logger.Fatalf("Error querying launchpad: %s", err)
 		}
 		revisionBuildStatus := make(map[uint]string)
 		for _, v := range builds.Entries {
@@ -72,7 +72,7 @@ func main() {
 		// github
 		runs, err := queryGithub(v.GithubRepo)
 		if err != nil {
-			log.Fatalf("Error querying launchpad: %s", err)
+			logger.Fatalf("Error querying launchpad: %s", err)
 		}
 		var totalSnapRuns, failedSnapRuns uint
 		testIcon := "🔴"
@@ -82,7 +82,7 @@ func main() {
 			}
 			if run.Conclusion == "failure" {
 				failedSnapRuns++
-				log.Printf("🔴 %s (%s)", run.DisplayTitle, run.HTMLURL)
+				logger.Errorf("🔴 %s (%s)", run.DisplayTitle, run.HTMLURL)
 			}
 		}
 		if totalSnapRuns == 0 { // something is not right
@@ -113,44 +113,6 @@ func main() {
 	t.Render()
 }
 
-type config struct {
-	Snaps map[string]struct {
-		GithubRepo string
-	}
-}
-
-func loadConfig(confFile string) (c *config, err error) {
-
-	if strings.HasPrefix(confFile, "http") {
-		log.Println("Fetching config file from:", confFile)
-
-		res, err := http.Get(confFile)
-		if err != nil {
-			return nil, err
-		}
-		defer res.Body.Close()
-
-		err = json.NewDecoder(res.Body).Decode(&c)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		log.Println("Reading local config file from:", confFile)
-		file, err := os.Open(confFile)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		err = json.NewDecoder(file).Decode(&c)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return c, nil
-}
-
 type snapInfo struct {
 	ChannelMap []struct {
 		Channel struct {
@@ -164,7 +126,7 @@ type snapInfo struct {
 }
 
 func querySnapStore(snapName string) (*snapInfo, error) {
-	log.Println("Querying Snap Store info for:", snapName)
+	logger.Infoln("Querying Snap Store info for:", snapName)
 	req, err := http.NewRequest(http.MethodGet, "https://api.snapcraft.io/v2/snaps/info/"+snapName, nil)
 	if err != nil {
 		return nil, err
@@ -186,8 +148,6 @@ func querySnapStore(snapName string) (*snapInfo, error) {
 		return nil, err
 	}
 
-	// log.Println("Snap info:", info)
-
 	return &info, nil
 }
 
@@ -199,7 +159,7 @@ type builds struct {
 }
 
 func queryLaunchpad(projectName string) (*builds, error) {
-	log.Println("Querying Launchpad for:", projectName)
+	logger.Infoln("Querying Launchpad for:", projectName)
 	res, err := http.Get(fmt.Sprintf("https://api.launchpad.net/devel/~canonical-edgex/+snap/%s/builds?ws.size=10&direction=backwards&memo=0", projectName))
 	if err != nil {
 		return nil, err
@@ -210,8 +170,6 @@ func queryLaunchpad(projectName string) (*builds, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// log.Println("Builds:", builds)
 
 	return &builds, nil
 }
@@ -227,7 +185,7 @@ type runs struct {
 }
 
 func queryGithub(project string) (*runs, error) {
-	log.Println("Querying Github workflow runs for:", project)
+	logger.Infoln("Querying Github workflow runs for:", project)
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/actions/runs?per_page=10&event=pull_request", project))
 	if err != nil {
 		return nil, err
@@ -240,10 +198,8 @@ func queryGithub(project string) (*runs, error) {
 	}
 
 	if r.Message != "" {
-		log.Printf("🟠 %s", r.Message)
+		logger.Warnf("🟠 %s", r.Message)
 	}
-
-	// log.Println("Github workflow runs:", r)
 
 	return &r, err
 }
