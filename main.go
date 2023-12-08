@@ -22,7 +22,7 @@ func main() {
 	snapName := flag.String("snap", "", "Get info for a single snap only")
 	flag.Parse()
 
-	conf, err := config.LoadConfig(*confFile)
+	conf, err := config.Load(*confFile)
 	if err != nil {
 		logger.Fatalf("Error loading config file: %s", err)
 	}
