@@ -44,7 +44,7 @@ func main() {
 			continue
 		}
 
-		logger.Successf("⏬ %s", k)
+		logger.Infof("⏬ %s", k)
 
 		// snap store
 		info, err := querySnapStore(k)
