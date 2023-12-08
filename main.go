@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	config "github.com/canonical/edgex-snap-info/config"
+	"github.com/canonical/edgex-snap-info/config"
 	"github.com/canonical/edgex-snap-info/logger"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
