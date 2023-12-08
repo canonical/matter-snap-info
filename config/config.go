@@ -16,13 +16,13 @@ type Config struct {
 	}
 }
 
-func Load(confFile string) (c *Config, err error) {
+func Load(path string) (c *Config, err error) {
 	var reader io.Reader
 
-	if strings.HasPrefix(confFile, "http") {
-		logger.Infoln("Fetching config file from:", confFile)
+	if strings.HasPrefix(path, "http") {
+		logger.Infoln("Fetching config file from:", path)
 
-		res, err := http.Get(confFile)
+		res, err := http.Get(path)
 		if err != nil {
 			return nil, err
 		}
@@ -30,8 +30,8 @@ func Load(confFile string) (c *Config, err error) {
 
 		reader = res.Body
 	} else {
-		logger.Infoln("Reading local config file from:", confFile)
-		file, err := os.Open(confFile)
+		logger.Infoln("Reading local config file from:", path)
+		file, err := os.Open(path)
 		if err != nil {
 			return nil, err
 		}
