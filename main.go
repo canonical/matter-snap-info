@@ -9,7 +9,7 @@ import (
 	"time"
 
 	config "github.com/canonical/edgex-snap-info/config"
-	logger "github.com/canonical/edgex-snap-info/log"
+	"github.com/canonical/edgex-snap-info/logger"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
