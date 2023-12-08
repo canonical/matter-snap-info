@@ -29,8 +29,7 @@ func Infof(format string, args ...interface{}) {
 }
 
 func Infoln(args ...interface{}) {
-	msg := white + fmt.Sprint(args...) + reset
-	log.Println(msg)
+	Infof(fmt.Sprint(args...))
 }
 
 func Warnf(format string, args ...interface{}) {
@@ -39,8 +38,7 @@ func Warnf(format string, args ...interface{}) {
 }
 
 func Warnln(args ...interface{}) {
-	msg := yellow + fmt.Sprint(args...) + reset
-	log.Println(msg)
+	Warnf(fmt.Sprint(args...))
 }
 
 func Errorf(format string, args ...interface{}) {
@@ -49,8 +47,7 @@ func Errorf(format string, args ...interface{}) {
 }
 
 func Errorln(args ...interface{}) {
-	msg := red + fmt.Sprint(args...) + reset
-	log.Println(msg)
+	Errorf(fmt.Sprint(args...))
 }
 
 func Fatalf(format string, args ...interface{}) {
@@ -59,6 +56,5 @@ func Fatalf(format string, args ...interface{}) {
 }
 
 func Fatalln(args ...interface{}) {
-	msg := red + fmt.Sprint(args...) + reset
-	log.Fatalln(msg)
+	Fatalf(fmt.Sprint(args...))
 }
