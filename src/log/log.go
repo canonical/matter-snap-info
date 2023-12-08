@@ -14,8 +14,8 @@ const (
 	Reset  = "\033[0m"
 )
 
-func Printf(color, format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
+func Printf(color, format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
 	log.Printf(color + msg + Reset)
 }
 
