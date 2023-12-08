@@ -16,7 +16,7 @@ type Config struct {
 	}
 }
 
-func LoadConfig(confFile string) (c *Config, err error) {
+func Load(confFile string) (c *Config, err error) {
 	var reader io.Reader
 
 	if strings.HasPrefix(confFile, "http") {
