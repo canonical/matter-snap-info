@@ -141,29 +141,6 @@ func querySnapStore(snapName string) (*snapInfo, error) {
 	return &info, nil
 }
 
-type builds struct {
-	Entries []struct {
-		StoreUploadRevision *uint `json:"store_upload_revision"`
-		BuildState          string
-	}
-}
-
-func queryLaunchpad(projectName string) (*builds, error) {
-	logger.Infoln("Querying Launchpad for:", projectName)
-	res, err := http.Get(fmt.Sprintf("https://api.launchpad.net/devel/~canonical-edgex/+snap/%s/builds?ws.size=10&direction=backwards&memo=0", projectName))
-	if err != nil {
-		return nil, err
-	}
-
-	var builds builds
-	err = json.NewDecoder(res.Body).Decode(&builds)
-	if err != nil {
-		return nil, err
-	}
-
-	return &builds, nil
-}
-
 type runs struct {
 	WorkflowRuns []struct {
 		Name         string
