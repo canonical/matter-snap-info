@@ -30,7 +30,7 @@ func main() {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.SetStyle(table.StyleColoredBright)
-	t.AppendHeader(table.Row{"Name", "Channel", "Version", "Arch", "Rev", "Date", "Build"})
+	t.AppendHeader(table.Row{"Name", "Channel", "Version", "Arch", "Rev", "Date", "Build", "Test"})
 
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 1, AutoMerge: true},
@@ -52,44 +52,16 @@ func main() {
 			logger.Fatalf("Error querying snap store: %s", err)
 		}
 
-		// launchpad
-		builds, err := queryLaunchpad(k)
-		if err != nil {
-			logger.Fatalf("Error querying launchpad: %s", err)
-		}
-		revisionBuildStatus := make(map[uint]string)
-		for _, v := range builds.Entries {
-			// Setting a check mark only if we find the successful build result for a given revision.
-			// Alternative scenarios include results that have no revision number because:
-			// - build or artifact upload has failed (an actual failure)
-			// - build is too old and not returned in the query
-			// - build or artifact upload is pending
-			if v.StoreUploadRevision != nil && v.BuildState == "Successfully built" {
-				revisionBuildStatus[*v.StoreUploadRevision] = "✅"
-			}
-		}
-
 		// github
 		runs, err := queryGithub(v.GithubRepo)
 		if err != nil {
 			logger.Fatalf("Error querying launchpad: %s", err)
 		}
-		var totalSnapRuns, failedSnapRuns uint
-		testIcon := "🔴"
-		for _, run := range runs.WorkflowRuns {
-			if run.Name == "Snap Testing" {
-				totalSnapRuns++
-			}
-			if run.Conclusion == "failure" {
-				failedSnapRuns++
-				logger.Errorf("🔴 %s (%s)", run.DisplayTitle, run.HTMLURL)
-			}
-		}
-		if totalSnapRuns == 0 { // something is not right
-			testIcon = "🟠"
-		} else if failedSnapRuns == 0 {
-			testIcon = "🟢"
-		}
+		var build, test snapStatistcs
+		build.runName = "Snap Builder"
+		test.runName = "Snap Testing"
+		handleRun(runs, &build)
+		handleRun(runs, &test)
 
 		// fill the table
 		for _, cm := range info.ChannelMap {
@@ -100,17 +72,35 @@ func main() {
 				cm.Channel.Architecture,
 				cm.Revision,
 				cm.Channel.ReleasedAt.Format(time.Stamp),
-				revisionBuildStatus[cm.Revision],
+				fmt.Sprintf("%d/%d", build.success, build.total),
+				fmt.Sprintf("%d/%d", test.success, test.total),
 			}, table.RowConfig{AutoMerge: true})
 		}
-		t.AppendRow(table.Row{
-			fmt.Sprintf("%s failed %d/%d", testIcon, failedSnapRuns, totalSnapRuns),
-			"", "", "", "", "", "",
-		}, table.RowConfig{AutoMerge: true})
+
 		t.AppendSeparator()
 	}
 
 	t.Render()
+}
+
+type snapStatistcs struct {
+	total, success uint
+	runName        string
+}
+
+func handleRun(run *runs, s *snapStatistcs) {
+	for _, r := range run.WorkflowRuns {
+		if r.Name != s.runName {
+			continue
+		}
+		s.total++
+		if r.Conclusion == "success" {
+			*&s.success++
+			// logger.Successf("🟢 %s (%s)", r.DisplayTitle, r.HTMLURL)
+		} else {
+			logger.Errorf("🔴 %s (%s)", r.DisplayTitle, r.HTMLURL)
+		}
+	}
 }
 
 type snapInfo struct {
