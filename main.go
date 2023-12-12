@@ -57,11 +57,9 @@ func main() {
 		if err != nil {
 			logger.Fatalf("Error querying launchpad: %s", err)
 		}
-		var build, test snapStatistcs
-		build.runName = "Snap Builder"
-		test.runName = "Snap Testing"
-		handleRun(runs, &build)
-		handleRun(runs, &test)
+
+		build := computeWorkflowRunStats(runs, "Snap Builder")
+		test := computeWorkflowRunStats(runs, "Snap Testing")
 
 		// fill the table
 		for _, cm := range info.ChannelMap {
@@ -83,24 +81,24 @@ func main() {
 	t.Render()
 }
 
-type snapStatistcs struct {
+type workflowRunStats struct {
 	total, success uint
-	runName        string
 }
 
-func handleRun(run *runs, s *snapStatistcs) {
+func computeWorkflowRunStats(run *workflowRuns, runName string) (s workflowRunStats) {
 	for _, r := range run.WorkflowRuns {
-		if r.Name != s.runName {
+		if r.Name != runName {
 			continue
 		}
 		s.total++
 		if r.Conclusion == "success" {
-			*&s.success++
+			s.success++
 			// logger.Successf("🟢 %s (%s)", r.DisplayTitle, r.HTMLURL)
 		} else {
 			logger.Errorf("🔴 %s (%s)", r.DisplayTitle, r.HTMLURL)
 		}
 	}
+	return s
 }
 
 type snapInfo struct {
@@ -141,7 +139,7 @@ func querySnapStore(snapName string) (*snapInfo, error) {
 	return &info, nil
 }
 
-type runs struct {
+type workflowRuns struct {
 	WorkflowRuns []struct {
 		Name         string
 		Conclusion   string
@@ -151,14 +149,14 @@ type runs struct {
 	Message string
 }
 
-func queryGithub(project string) (*runs, error) {
+func queryGithub(project string) (*workflowRuns, error) {
 	logger.Infoln("Querying Github workflow runs for:", project)
 	res, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%s/actions/runs?per_page=10&event=pull_request", project))
 	if err != nil {
 		return nil, err
 	}
 
-	var r runs
+	var r workflowRuns
 	err = json.NewDecoder(res.Body).Decode(&r)
 	if err != nil {
 		return nil, err

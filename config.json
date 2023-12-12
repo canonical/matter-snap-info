@@ -2,6 +2,12 @@
     "snaps": {
         "chip-tool":{
             "githubRepo": "canonical/chip-tool-snap"
+        },
+        "matter-pi-gpio-commander":{
+            "githubRepo": "canonical/matter-pi-gpio-commander"
+        },
+        "openthread-border-router":{
+            "githubRepo": "canonical/openthread-border-router-snap"
         }
     }
 }
