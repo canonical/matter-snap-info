@@ -11,8 +11,8 @@ matter-snap-info --help
 ```
 
 Example:
-![image](https://user-images.githubusercontent.com/11150423/201926961-0212e1d3-9228-4b50-91c2-e9ee9282afda.png)
 
+![image](https://github.com/canonical/matter-snap-info/assets/63445413/b4a51995-6032-4182-85df-e30b9b899c40)
 
 By default, the application fetches the config file from the repository. 
 
