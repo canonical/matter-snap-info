@@ -1,13 +1,13 @@
-# EdgeX Snap Info
+# Matter Snap Info
 
 Install:
 ```
-go install github.com/canonical/edgex-snap-info
+go install github.com/canonical/matter-snap-info@latest
 ```
 
 Run:
 ```
-edgex-snap-info --help
+matter-snap-info --help
 ```
 
 Example:

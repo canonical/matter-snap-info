@@ -1,4 +1,4 @@
-module github.com/canonical/edgex-snap-info
+module github.com/canonical/matter-snap-info
 
 go 1.18
 
