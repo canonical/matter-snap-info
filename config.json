@@ -1,46 +1,13 @@
 {
     "snaps": {
-        "edgexfoundry": {
-            "githubRepo": "edgexfoundry/edgex-go"
+        "chip-tool":{
+            "githubRepo": "canonical/chip-tool-snap"
         },
-        "edgex-device-virtual": {
-            "githubRepo": "edgexfoundry/device-virtual-go"
+        "matter-pi-gpio-commander":{
+            "githubRepo": "canonical/matter-pi-gpio-commander"
         },
-        "edgex-ekuiper": {
-            "githubRepo": "canonical/edgex-ekuiper-snap"
-        },
-        "edgex-ui": {
-            "githubRepo": "edgexfoundry/edgex-ui-go"
-        },
-        "edgex-device-modbus": {
-            "githubRepo": "edgexfoundry/device-modbus-go"
-        },
-        "edgex-device-snmp": {
-            "githubRepo": "edgexfoundry/device-snmp-go"
-        },
-        "edgex-device-rest": {
-            "githubRepo": "edgexfoundry/device-rest-go"
-        },
-        "edgex-device-mqtt": {
-            "githubRepo": "edgexfoundry/device-mqtt-go"
-        },
-        "edgex-device-gpio": {
-            "githubRepo": "edgexfoundry/device-gpio"
-        },
-        "edgex-device-rfid-llrp": {
-            "githubRepo": "edgexfoundry/device-rfid-llrp-go"
-        },
-        "edgex-device-usb-camera": {
-            "githubRepo": "edgexfoundry/device-usb-camera"
-        },
-        "edgex-device-onvif-camera": {
-            "githubRepo": "edgexfoundry/device-onvif-camera"
-        },
-        "edgex-app-service-configurable": {
-            "githubRepo": "edgexfoundry/app-service-configurable"
-        },
-        "edgex-app-rfid-llrp-inventory": {
-            "githubRepo": "edgexfoundry/app-rfid-llrp-inventory"
+        "openthread-border-router":{
+            "githubRepo": "canonical/openthread-border-router-snap"
         }
     }
 }
