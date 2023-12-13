@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/canonical/edgex-snap-info/logger"
+	"github.com/canonical/matter-snap-info/logger"
 )
 
 type Config struct {
