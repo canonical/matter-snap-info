@@ -1,0 +1,3 @@
+#!/bin/bash
+
+logger "matter-snap-info: config-path: $(snapctl get config-path)"
