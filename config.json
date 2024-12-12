@@ -6,6 +6,9 @@
         "matter-pi-gpio-commander":{
             "githubRepo": "canonical/matter-pi-gpio-commander"
         },
+        "matter-all-clusters-app":{
+            "githubRepo": "canonical/matter-all-clusters-app-snap"
+        },
         "openthread-border-router":{
             "githubRepo": "canonical/openthread-border-router-snap"
         }
