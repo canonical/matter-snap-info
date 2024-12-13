@@ -1,0 +1,34 @@
+name: matter-snap-info
+base: core22
+version: 'v1.0.0-alpha' 
+summary: An app to query snap info for Matter snaps
+description: |
+  This is a development tool, useful for DevOps in order to quickly get a summary
+  of released snaps and the CI/CD status.
+license: Apache-2.0
+
+grade: stable
+confinement: devmode
+
+parts:
+  snap-info:
+    source: .
+    plugin: go
+    build-snaps:
+      - go/1.21/stable
+  config:
+    source: .
+    plugin: nil
+    override-build: |
+      cp -v config.json $CRAFT_PART_INSTALL/config.json
+  scripts:
+    source: snap/local
+    plugin: nil
+    override-build: |
+      mkdir -p $CRAFT_PART_INSTALL/bin
+      cp -v run.sh $CRAFT_PART_INSTALL/bin/
+
+
+apps:
+  matter-snap-info:
+    command: bin/run.sh
