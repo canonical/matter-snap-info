@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cp $SNAP/config.json $SNAP_DATA/
+
+snapctl set config-path=$SNAP/config.json
